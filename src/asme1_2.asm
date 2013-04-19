@@ -1,0 +1,53 @@
+.386
+DATA SEGMENT USE16
+        STR1 DB 0,1,2,3,4,5
+        STR2 DB '012345'
+        COUNT EQU 30
+        NUMB DB 3 DUP(2)
+        NUMW DW 10H, -60H
+        POIN DW 0
+DATA ENDS
+
+STACK SEGMENT USE16 STACK
+        DB 200 DUP(0)
+STACK ENDS
+
+CODE SEGMENT USE16
+        ASSUME CS:CODE, DS:DATA
+START:  MOV AX, DATA
+        MOV DS, AX
+EXP1:   ;MOV BX, OFFSET STR1 + 3
+        ;MOV SI, OFFSET STR2
+        ;MOV CL, COUNT
+        ;MOV DX, WORD PTR NUMB
+        ;MOV BP, NUMW + 2
+        ;MOV AL, 3[SI]
+        ;MOV AH, [SI+BX+1]
+        ;MOV CH, BYTE PTR NUMW + 3
+        ;MOVSX EAX, AX
+EXP2:
+MET1:   MOV AH, STR1 + 3
+MET2:   MOV SI, OFFSET STR1 + 3
+        MOV AL, [SI]
+MET3:   MOV SI, OFFSET STR1
+        MOV CH, 3[SI]
+MET4:   MOV BX, OFFSET STR1
+        MOV SI, 3
+        MOV CL, [BX][SI]
+MET1_:  MOVSX AX, STR1 + 3
+MET2_:  MOV SI, OFFSET STR1+3
+        MOVSX CX, BYTE PTR [SI]
+MET3_:  MOV SI, OFFSET STR1
+        MOVSX DX, BYTE PTR 3[SI]
+MET4_:  MOV BX, OFFSET STR1
+        MOV DI, 3
+        MOVSX SI, BYTE PTR [BX][DI]
+MET5:   MOV AL, STR2+2
+        MOV AH, STR2+3
+        MOV SI, OFFSET STR2
+        MOV 3[SI], AL
+        MOV 2[SI], AH     
+        MOV AH, 4C
+        INT 21H        
+CODE ENDS
+        END START

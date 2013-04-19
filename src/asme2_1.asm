@@ -1,0 +1,32 @@
+.386
+DATA SEGMENT USE16
+    BUF DB 49,0,50 DUP(0)
+    CRLF DB 0DH, 0AH, '$'
+DATA ENDS
+
+STACK SEGMENT USE16 STACK
+    DB 200 DUP(0)
+STACK ENDS
+
+CODE SEGMENT USE16
+        ASSUME CS:CODE, DS:DATA, SS:STACK
+START:  MOV AX, DATA
+        MOV DS, AX
+        LEA DX, BUF
+        MOV AH, 10
+        INT 21H
+        LEA DX, CRLF
+        MOV AH ,9
+        INT 21H
+        MOV BL, BUF+1
+        MOV BH, 0
+        DEC BX
+LOOPA:  MOV DL, BYTE PTR BUF+2[BX]
+        MOV AH, 2
+        INT 21H
+        DEC BX
+        JNS LOOPA
+        MOV AH, 4C
+        INT 21H
+CODE ENDS
+    END START

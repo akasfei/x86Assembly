@@ -1,0 +1,30 @@
+.386
+DATA SEGMENT USE16
+        STR1 DB 0,1,2,3,4,5
+        STR2 DB '012345'
+        COUNT EQU 30
+        NUMB DB 3 DUP(2)
+        NUMW DW 10H, -60H
+        POIN DW 0
+DATA ENDS
+
+STACK SEGMENT USE16 STACK
+        DB 200 DUP(0)
+STACK ENDS
+
+CODE SEGMENT USE16
+        ASSUME CS:CODE, DS:DATA
+START:  MOV AX, DATA
+        MOV DS, AX
+EXP5:   MOV AL, STR1
+        MOV BX, OFFSET STR1
+        MOV SI, 1
+LOOPA:  ADD AL, BYTE PTR [BX][SI]
+        INC SI
+        CMP SI, 5
+        JLE LOOPA
+        MOV [BX], AL
+        MOV AH, 4C
+        INT 21H
+CODE ENDS
+        END START

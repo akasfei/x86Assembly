@@ -1,11 +1,11 @@
 .386
 DATA SEGMENT USE16
-    IBUF DB 31,0,31 DUP(0)
+    IBUF DB 80,0,80 DUP(0)
     BUF DB 6,0,6 DUP(0)
     RES DB 5 DUP(0), '$'
     CRLF DB 0DH, 0AH, '$'
-    TARG DW 5 DUP(0)
-    HINT1 DB 'Input 5 numbers in a row:', 0DH, 0AH, '$'
+    TARG DW 31 DUP(0)
+    HINT1 DB 'Input numbers in a row:', 0DH, 0AH, '$'
     HINT2 DB 'Decimal (1) or Hexadecimal (2)?', 0DH, 0AH, '$'
 DATA ENDS
 
@@ -30,6 +30,7 @@ START:  MOV AX, DATA
         MOV BX, 0
         MOV BP, 0
         MOV SI, 0
+        MOV DI, 0 ; TARG END OFFSET
 SLCNUM: MOV DL, IBUF+2[BX]
         CMP DL, 20H
         JG SCPY ; not blank, copy char
@@ -38,6 +39,7 @@ SLCNUM: MOV DL, IBUF+2[BX]
 CALLF:  MOV CX, BP
         MOV BUF+1, CL
         MOV BP, 0
+        ADD DI, 2
         CALL INNUM
         JMP SCNT ; continue
 SCPY:   MOV BUF+2[BP], DL
@@ -45,12 +47,13 @@ SCPY:   MOV BUF+2[BP], DL
         CMP BP, 6
         JGE CALLF ; BUF full
 SCNT:   INC BX
-        CMP SI, 10
+        CMP SI, 62
         JGE SBRK
         CMP BL, IBUF+1
         JL SLCNUM
         CMP BP, 0
         JG CALLF ; read last number
+        SUB DI, 2
 SBRK:   CALL SORT
         
         LEA DX, HINT2
@@ -76,7 +79,7 @@ PRES2:  LEA DX, RES
         MOV AH, 2
         INT 21H
         ADD SI, 2
-        CMP SI, 8
+        CMP SI, DI
         JLE PRES
         
         MOV AH, 4CH
@@ -145,8 +148,14 @@ BEGITOD:MOV AX, DX
         MOV CX, 10
 LOOPB:  MOV DX, 0
         IDIV CX
-        ADD DL, 30H
-        MOV RES+[BX], DL
+        CMP AX, 0
+        JNE ADL
+        CMP DL, 0
+        JNE ADL
+        JMP ARES
+ADL:    ADD DL, 30H
+        JMP ARES
+ARES:   MOV RES+[BX], DL
         DEC BX
         JNZ LOOPB
         POP DX
@@ -202,7 +211,7 @@ ILP:    MOV BX, TARG+[SI]
         MOV TARG+[SI+2], BX
         MOV TARG+[SI], DX
 BGED:   ADD SI, 2
-        CMP SI, 8
+        CMP SI, DI
         JL ILP
         CMP AX, 0
         MOV SI, 0

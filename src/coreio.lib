@@ -1,0 +1,32 @@
+READ MACRO A
+    PUSH DX
+    LEA DX, A
+    MOV AH, 10
+    INT 21H
+    POP DX
+ENDM
+
+WRITE MACRO A
+    PUSH AX
+    LEA DX, A
+    MOV AH, 9
+    INT 21H
+    POP AX
+ENDM
+
+WRITECRLF MACRO
+    PUSH AX
+    PUSH DX
+    MOV AH, 2
+    MOV DL, 0AH
+    INT 21H
+    MOV DL, 0DH
+    INT 21H
+    POP DX
+    POP AX
+ENDM
+
+WRITELN MACRO A
+    WRITE A
+    WRITECRLF
+ENDM

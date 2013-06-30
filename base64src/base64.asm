@@ -176,17 +176,17 @@ dec_24bloop:
     MOV EDI, 3
 dec_byteloop:
     MOV DL, BYTE PTR [ESI]
-    CONV
+    CONV ;convert an ascii char
     ADD AL, DL
     SHL EAX, 6
     INC ESI
     DEC EDI
-    JNS dec_byteloop
+    JNS dec_byteloop 
     
-    SHR EAX, 6
+    SHR EAX, 6 ;move back EAX
     MOV EDI, 2
 dec_outbyte:
-    MOV BYTE PTR[EBP+EDI], AL
+    MOV BYTE PTR[EBP+EDI], AL ;move the decrypted byte to buf
     SHR EAX, 8
     DEC EDI
     JNS dec_outbyte
@@ -203,7 +203,7 @@ last_byteloop:
     CMP BYTE PTR [ESI], '='
     JE last_out
     MOV DL, BYTE PTR [ESI]
-    CONV
+    CONV ;convert an ascii char
     ADD AL, DL
     SHL EAX, 6
     INC ESI
@@ -211,13 +211,13 @@ last_byteloop:
     JNS last_byteloop
     
 last_out:
-    SHR EAX, 6
+    SHR EAX, 6 ;move back EAX
     .IF EDI == 0 ;one '=' at the end
-        SHR EAX, 2
+        SHR EAX, 2 ;move EAX to correct position
         MOV EDI, 1
         ADD DWORD PTR [EBX], 2
     .ELSEIF EDI == 1 ; two '=' at the end
-        SHR EAX, 4
+        SHR EAX, 4 ;move EAX to correct position
         MOV EDI, 0
         ADD DWORD PTR [EBX], 1
     .ELSE
@@ -225,7 +225,7 @@ last_out:
         ADD DWORD PTR [EBX], 3
     .ENDIF
 last_outloop:
-    MOV BYTE PTR[EBP+EDI], AL
+    MOV BYTE PTR[EBP+EDI], AL ;move the decrypted byte to buf
     SHR EAX, 8
     DEC EDI
     JNS last_outloop

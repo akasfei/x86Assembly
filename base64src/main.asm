@@ -13,13 +13,13 @@ toBASE64 PROTO :DWORD, :DWORD, :DWORD, :DWORD
 ;toBYTE PROTO :DWORD, :DWORD, :DWORD
 
 .DATA
-    MsgBoxCaption	DB "An example of Cancel,Retry,Continue",0 
-    MsgBoxText	DB "Hello Message Box!",0
+    MsgBoxCaption	DB "Please select working method.",0 
+    MsgBoxText	DB "Click OK for Encryption, No for Decryption",0
 
     srcFileName DB "source.txt", 0
     desFileName DB "dest.txt", 0
     
-    DBNOTE1 DB "base64.asm line 11", 0
+    DBNOTE1 DB "Encrypting source.txt", 0
     DBNOTE2 DB "base64.asm line 64", 0
     DBNOTE3 DB "base64.asm line 66", 0
     DBNOTE4 DB "base64.asm", 0
@@ -49,16 +49,6 @@ toBASE64 PROTO :DWORD, :DWORD, :DWORD, :DWORD
 .CODE 
 start:
 
-	;.IF EAX == IDABORT
-		; Abort was pressed
-
-	;.ELSEIF EAX == IDRETRY
-		; Retry was pressed
-
-	;.ELSEIF EAX == IDCANCEL
-		; Cancel was pressed
-	;.ENDIF
-    
     INVOKE CreateFile, ADDR srcFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
     MOV hSFile, EAX
     INVOKE CreateFile, ADDR desFileName, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL
@@ -73,11 +63,19 @@ start:
     INVOKE GlobalLock, hDMemory 
     MOV pDMemory, EAX
     
-    READF:
-    INVOKE ReadFile, hSFile, pSMemory, SRCMSIZE, ADDR SReadSize, NULL
+    INVOKE MessageBox, NULL, ADDR MsgBoxText, ADDR MsgBoxCaption, MB_YESNOCANCEL
+	
+    .IF EAX == IDYES
+        INVOKE MessageBox, NULL, ADDR DBNOTE1, ADDR srcFileName, MB_OK
+        JMP READF
+	.ELSEIF EAX == IDNO
+        JMP DECRYPT
+	.ELSEIF EAX == IDCANCEL
+        JMP MEXIT
+	.ENDIF
     
-        ;INVOKE MessageBox, NULL, ADDR MsgBoxText, ADDR MsgBoxCaption, MB_ICONERROR OR MB_ABORTRETRYIGNORE
-        
+READF:
+    INVOKE ReadFile, hSFile, pSMemory, SRCMSIZE, ADDR SReadSize, NULL
     INVOKE toBASE64, pSMemory, pDMemory, SReadSize, ADDR DWriteSize
     MOV EAX, SReadSize
     MOV EDX, 0
@@ -89,15 +87,20 @@ start:
     MOV ECX, 4
     MUL ECX
     MOV DWriteSize, EAX
-    INVOKE MessageBox, NULL, pDMemory, ADDR MsgBoxCaption, MB_OK
+    ;INVOKE MessageBox, NULL, pDMemory, ADDR srcFileName, MB_OK
     INVOKE WriteFile, hDFile, pDMemory, DWriteSize, ADDR writeStats, NULL
         
-    .IF SReadSize <= SRCMSIZE
-        INVOKE MessageBox, NULL, pSMemory, ADDR srcFileName, MB_OK
-    .ELSE
-        JMP READF
-    .ENDIF
+    ;.IF SReadSize <= SRCMSIZE
+    ;    INVOKE MessageBox, NULL, pSMemory, ADDR srcFileName, MB_OK
+    ;.ELSE
+    ;    JMP READF
+    ;.ENDIF
+    JMP MEXIT
+DECRYPT:
+
     
+    
+MEXIT:
     INVOKE GlobalUnlock, pSMemory 
     INVOKE GlobalFree, hSMemory 
     INVOKE CloseHandle, hSFile 
